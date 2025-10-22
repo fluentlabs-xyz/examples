@@ -1,0 +1,11 @@
+{
+  "version": "1",
+  "examples": [
+    {
+      "name": "erc20-rs",
+      "description": "Full ERC20 token implementation in Rust WASM",
+      "difficulty": "intermediate",
+      "tags": ["wasm", "token", "erc20", "rust"]
+    }
+  ]
+}
