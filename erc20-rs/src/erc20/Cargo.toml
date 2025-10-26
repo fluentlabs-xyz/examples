@@ -9,12 +9,11 @@ alloy-sol-types = { version = "1.2.0", default-features = false, features = ["js
 hex-literal = { version = "0.4.1", default-features = false }
 
 [dev-dependencies]
-fluentbase-testing = {git = "https://github.com/fluentlabs-xyz/fluentbase", tag = "v0.4.10-dev"  }
+fluentbase-testing = {git = "https://github.com/fluentlabs-xyz/fluentbase", tag = "v0.4.11-dev"  }
 serial_test = "3.0.0"
 
 [lib]
 crate-type = ["cdylib"]
-path = "lib.rs"
 
 [features]
 default = ["std"]
