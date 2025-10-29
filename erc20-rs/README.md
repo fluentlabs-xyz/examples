@@ -111,7 +111,7 @@ cast call $CONTRACT_ADDRESS \
 # 4. Check sender's balance
 cast call $CONTRACT_ADDRESS \
   "balanceOf(address)(uint256)" \
-  $RECIPIENT_ADDRESS \
+  $SENDER_ADDRESS \
   --rpc-url https://rpc.devnet.fluent.xyz
 
 ```
