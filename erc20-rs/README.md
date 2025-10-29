@@ -1,176 +1,138 @@
 # ERC-20 Token in Pure Rust
 
-A complete ERC-20 token implementation written entirely in Rust and compiled to WASM. This example demonstrates how to build a full-featured token contract without Solidity.
+A complete ERC-20 implementation written entirely in Rust and compiled to WASM. Demonstrates how to build a fully compliant token contract without Solidity.
 
-## What This Demonstrates
+## Overview
 
-- **Pure Rust smart contract** - No Solidity required
-- **Full ERC-20 standard** - All standard token methods
-- **State management in WASM** - Using `fluentbase_sdk` storage
-- **Unit testing** - Rust native tests with `HostTestingContext`
+* Pure Rust smart contract (no Solidity)
+* Fully ERC-20 compatible
+* Deterministic WASM builds via `gblend`
+* Local testing using `cargo test`
+* Source verification through Fluent Blockscout
+
+---
 
 ## Prerequisites
 
-- Basic understanding of ERC-20 tokens
-- Familiarity with Rust
-- Rust toolchain with `wasm32-unknown-unknown` target
-- gblend installed ([installation guide](https://github.com/fluentlabs-xyz/gblend))
-- Docker (for reproducible builds with gblend)
+* Rust toolchain with `wasm32-unknown-unknown` target
+* [gblend](https://github.com/fluentlabs-xyz/gblend) installed
+* Docker (required for reproducible builds)
 
-## Project Structure
+---
 
+## Quick Start
+
+### VS Code Configuration (optional)
+
+To enable Rust Analyzer and Solidity support, create `.vscode/settings.json`:
+
+```json
+{
+  "rust-analyzer.linkedProjects": [
+    "src/erc20/Cargo.toml"
+  ],
+}
 ```
-erc20/
-├── src/
-│   └── lib.rs           # ERC-20 implementation with tests
-└── Cargo.toml
-```
 
-## Part 1: Development & Testing (Standard Rust Workflow)
-
-During development, you work with this contract like any other Rust project.
-
-### Local Development Build
+### 1. Test Locally
 
 ```bash
-# Add WASM target if not already installed
-rustup target add wasm32-unknown-unknown
-
-# Build locally for development
-cargo build --target wasm32-unknown-unknown --release
-```
-
-The compiled WASM will be in `target/wasm32-unknown-unknown/release/erc20.wasm`.
-
-### Running Tests
-
-```bash
+cd src/erc20
 cargo test
 ```
 
-Tests use `HostTestingContext` to simulate blockchain state without requiring a node. This allows for fast iteration during development.
+Runs all unit tests using `HostTestingContext` to simulate blockchain state.
 
-```bash
-# Run with output
-cargo test -- --nocapture
+---
 
-# Run specific test
-cargo test test_transfer_functionality
-```
-
-See inline comments in `src/lib.rs` for detailed test examples.
-
-### Development Iteration
-
-The standard Rust development cycle applies:
-
-1. Write/modify code in `src/lib.rs`
-2. Run `cargo test` to verify changes
-3. Use `cargo clippy` for linting
-4. Use `cargo fmt` for formatting
-5. Repeat
-
-## Part 2: Deployment (Using gblend)
-
-For deployment, we use gblend to ensure reproducible builds. This is important because:
-
-- **Reproducibility** - Anyone can verify the deployed bytecode matches the source
-- **Consistency** - Same source always produces identical WASM
-- **Verification** - Block explorers can verify contract source code
-
-### Reproducible Build
+### 2. Reproducible Build
 
 ```bash
 gblend build
 ```
 
-This compiles your contract inside a Docker container with a fixed toolchain. The first build may take longer as it downloads the container image.
+Builds the contract inside a Docker container with a fixed toolchain.
+The resulting artifact is `erc20.wasm`.
 
-### Deploy to Testnet
+---
 
-```bash
-gblend create Erc20.wasm \
-    --rpc-url https://rpc.testnet.fluent.xyz \
-    --private-key $PRIVATE_KEY \
-    --broadcast \
-    --wasm \
-    --constructor-args "MyToken" "MTK" 1000000
-```
-
-**Important:** `--constructor-args` must be the last argument.
-
-**Constructor arguments:**
-
-- Token name (e.g., "MyToken")
-- Token symbol (e.g., "MTK")
-- Initial supply (e.g., 1000000 - minted to deployer)
-
-**Note:** Decimals are fixed at 18 in this implementation.
-
-### Deploy with Verification
-
-To make your source code publicly viewable on the block explorer:
+### 3. Deploy
 
 ```bash
-gblend create Erc20.wasm \
-    --rpc-url https://rpc.testnet.fluent.xyz \
-    --private-key $PRIVATE_KEY \
-    --broadcast \
-    --wasm \
-    --verify \
-    --verifier blockscout \
-    --verifier-url https://testnet.fluentscan.xyz/api/ \
-    --constructor-args "MyToken" "MTK" 1000000
+gblend create erc20.wasm \
+  --rpc-url https://rpc.devnet.fluent.xyz \
+  --private-key $PRIVATE_KEY \
+  --broadcast \
+  --constructor-args "MyToken" "MTK" 1000000
 ```
 
-## Quick Reference
+> **Note:** Constructor arguments must go last.
+> Format: `name`, `symbol`, `initial_supply`.
+> Decimals are fixed at **18**.
+
+---
+
+### 4. Verify Contract (optional)
 
 ```bash
-# Development cycle
-cargo test                    # Run tests
-cargo build --target wasm32-unknown-unknown --release  # Local build
-
-# Deployment
-gblend build                  # Reproducible build
-gblend create Erc20.wasm ...  # Deploy to network
+gblend verify-contract <CONTRACT_ADDRESS> erc20.wasm \
+  --rpc-url https://rpc.devnet.fluent.xyz \
+  --wasm \
+  --verifier blockscout \
+  --verifier-url https://devnet.fluentscan.xyz/api/
 ```
 
-## Key Concepts
+---
 
-### Pure Rust Benefits
+### 5. Interact with Contract
 
-- **Type safety** - Compile-time error checking prevents common bugs
-- **Memory safety** - No buffer overflows or null pointer dereferences
-- **Performance** - Optimized WASM execution near-native speed
-- **Testing** - Rich Rust testing ecosystem with cargo test
-- **Tooling** - Full IDE support, clippy, rust-analyzer
+Example using [cast](https://book.getfoundry.sh/reference/cast):
 
-### ERC-20 Methods
+```bash
+# 1. Check deployer's balance
+cast call $CONTRACT_ADDRESS \
+  "balanceOf(address)(uint256)" \
+  $DEPLOYER_ADDRESS \
+  --rpc-url https://rpc.devnet.fluent.xyz
 
-All standard ERC-20 methods are implemented:
+# 2. Transfer tokens to another account
+cast send $CONTRACT_ADDRESS \
+  "transfer(address,uint256)(bool)" \
+  $RECIPIENT_ADDRESS 100 \
+  --rpc-url https://rpc.devnet.fluent.xyz \
+  --private-key $PRIVATE_KEY
 
-- `name()`, `symbol()`, `decimals()` - Token metadata
-- `totalSupply()` - Total token supply
-- `balanceOf(address)` - Get account balance
-- `transfer(to, amount)` - Transfer tokens
-- `approve(spender, amount)` - Approve spending allowance
-- `allowance(owner, spender)` - Check approved allowance
-- `transferFrom(from, to, amount)` - Transfer using allowance
+# 3. Check recipient's balance
+cast call $CONTRACT_ADDRESS \
+  "balanceOf(address)(uint256)" \
+  $RECIPIENT_ADDRESS \
+  --rpc-url https://rpc.devnet.fluent.xyz
 
-## Extending This Example
+# 4. Check sender's balance
+cast call $CONTRACT_ADDRESS \
+  "balanceOf(address)(uint256)" \
+  $RECIPIENT_ADDRESS \
+  --rpc-url https://rpc.devnet.fluent.xyz
 
-Ideas for modifications:
+```
 
-- **Minting/burning** - Add supply management functions
-- **Pausable** - Emergency stop mechanism
-- **Access control** - Owner-only administrative functions
-- **Vesting** - Time-locked token release schedules
-- **Fee mechanism** - Take percentage on transfers
-- **Snapshots** - Historical balance tracking for governance
+---
 
-## Further Reading
+## ERC-20 Methods Implemented
 
-- [ERC-20 Standard](https://eips.ethereum.org/EIPS/eip-20)
-- [gblend Documentation](https://github.com/fluentlabs-xyz/gblend)
-- [Fluent Documentation](https://docs.fluentlabs.xyz)
-- [fluentbase_sdk Documentation](https://docs.fluentlabs.xyz/sdk)
+* `name()`, `symbol()`, `decimals()`
+* `totalSupply()`, `balanceOf(address)`
+* `transfer(to, amount)`
+* `approve(spender, amount)`
+* `allowance(owner, spender)`
+* `transferFrom(from, to, amount)`
+
+---
+
+## References
+
+* [ERC-20 Standard](https://eips.ethereum.org/EIPS/eip-20)
+* [Fluent Documentation](https://docs.fluentlabs.xyz)
+* [fluentbase_sdk](https://docs.fluentlabs.xyz/sdk)
+* [gblend CLI](https://github.com/fluentlabs-xyz/gblend)
+* [fluent networks](https://docs.fluent.xyz/connect-to-fluent/#network-parameters-1)
