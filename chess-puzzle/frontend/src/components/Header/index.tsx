@@ -21,22 +21,22 @@ interface ProfileDialogProps {
   isWrongNetwork: boolean
 }
 
-const ProfileDialog = ({ open, handleClose, name, address, isConnected, disconnect, switchChain, isWrongNetwork }: ProfileDialogProps) => {
+const ProfileDialog = ({ open, handleClose, name, address, disconnect, switchChain, isWrongNetwork }: ProfileDialogProps) => {
 
   return (
     <Dialog open={open} onClose={handleClose}>
       <DialogTitle>{name}</DialogTitle>
       <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
       <Typography variant="body1">{address}</Typography>
-      <Button onClick={() => switchChain({ chainId: FLUENT_TESTNET_CHAIN_ID })}>Switch Chain</Button>
-        <Button onClick={disconnect}>Disconnect</Button>
+      {isWrongNetwork && <Button onClick={() => switchChain({ chainId: FLUENT_TESTNET_CHAIN_ID })}>Switch Chain</Button>}
+      <Button onClick={disconnect}>Disconnect</Button>
       </DialogContent>
     </Dialog>
   )
 }
 
 export const Header = () => {
-  const { address, isConnected, chainId } = useAccount()
+  const { address, chainId } = useAccount()
   const [open, setOpen] = useState(false)
   const { connectors, connect } = useConnect()
   const { disconnect } = useDisconnect()
