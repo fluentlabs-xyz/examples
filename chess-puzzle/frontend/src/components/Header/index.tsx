@@ -36,7 +36,7 @@ const ProfileDialog = ({ open, handleClose, name, address, disconnect, switchCha
 }
 
 export const Header = () => {
-  const { address, chainId } = useAccount()
+  const { address, isConnected, chainId } = useAccount()
   const [open, setOpen] = useState(false)
   const { connectors, connect } = useConnect()
   const { disconnect } = useDisconnect()
