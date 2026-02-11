@@ -4,11 +4,36 @@ import { useAccount, useConnect, useDisconnect, useSwitchChain } from "wagmi"
 
 import {
   Header as HeaderUI,
-  ProfileDialog,
   ConnectWalletDialog,
   ConnectButton
 } from "@fluent.xyz/fluent-ui"
 import { FLUENT_TESTNET_CHAIN_ID } from "@/shared/config/consts"
+import { Button, Dialog, DialogContent, DialogTitle, Typography } from "@mui/material"
+
+interface ProfileDialogProps {
+  open: boolean
+  handleClose: () => void
+  name?: string
+  address: `0x${string}` | undefined
+  isConnected: boolean
+  disconnect: () => void
+  switchChain: (args: { chainId: number }) => void
+  isWrongNetwork: boolean
+}
+
+const ProfileDialog = ({ open, handleClose, name, address, isConnected, disconnect, switchChain, isWrongNetwork }: ProfileDialogProps) => {
+
+  return (
+    <Dialog open={open} onClose={handleClose}>
+      <DialogTitle>{name}</DialogTitle>
+      <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <Typography variant="body1">{address}</Typography>
+      <Button onClick={() => switchChain({ chainId: FLUENT_TESTNET_CHAIN_ID })}>Switch Chain</Button>
+        <Button onClick={disconnect}>Disconnect</Button>
+      </DialogContent>
+    </Dialog>
+  )
+}
 
 export const Header = () => {
   const { address, isConnected, chainId } = useAccount()
