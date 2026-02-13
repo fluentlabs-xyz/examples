@@ -1,10 +1,10 @@
 import {
-  PropsWithChildren,
   useCallback,
   useEffect,
   useRef,
   useState,
 } from "react"
+import type { PropsWithChildren } from "react"
 
 export type SwipeInput = { deltaX: number; deltaY: number }
 
