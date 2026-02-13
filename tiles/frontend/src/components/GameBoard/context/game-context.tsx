@@ -1,11 +1,11 @@
 import {
-  PropsWithChildren,
   createContext,
   useCallback,
   useEffect,
   useMemo,
   useReducer,
 } from "react"
+import type { PropsWithChildren } from "react"
 
 import { isNil, throttle } from "lodash"
 
