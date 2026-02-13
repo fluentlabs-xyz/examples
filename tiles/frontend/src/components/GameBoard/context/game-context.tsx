@@ -12,6 +12,7 @@ import { isNil, throttle } from "lodash"
 import gameReducer, {
   initState,
   LOCAL_STORAGE_KEY,
+  type State,
 } from "@/components/GameBoard/context/reducers/game-reducer"
 
 import {
@@ -63,32 +64,34 @@ export default function GameProvider({ children }: PropsWithChildren) {
     return results
   }
 
-  const randomAvailableCell = () => {
+  const randomAvailableCell = (gameState: State) => {
     const rng = gameState.range
-    const randomNum = rng.random()
+    const cellRnd = rng.next()
     const cells = getEmptyCells()
-
+  
     if (cells.length) {
-      return cells[Math.floor(randomNum * cells.length)]
+      const index = Number((cellRnd * BigInt(cells.length)) >> 64n)
+      return cells[index]
     }
   }
+
+  const THRESHOLD_90 = (BigInt("0xFFFFFFFFFFFFFFFF") * 9n) / 10n
 
   const appendRandomTile = () => {
     const emptyCells = getEmptyCells()
     const rng = gameState.range
-    const value = rng.random() < 0.9 ? 2 : 4
-    const randomCell = randomAvailableCell()
+    const valueRnd = rng.next()
+    const value = valueRnd < THRESHOLD_90 ? 2 : 4
+    const randomCell = randomAvailableCell(gameState)
     if (emptyCells.length > 0 && randomCell) {
-      const newTile = {
-        position: randomCell,
-        value,
-      }
-      dispatch({ type: "create_tile", tile: newTile })
+      dispatch({ type: "create_tile", tile: { position: randomCell, value } })
     }
   }
 
-  const getTiles = () =>
-    gameState.tilesByIds.map((tileId) => gameState.tiles[tileId])
+  const getTiles = useCallback(
+    () => gameState.tilesByIds.map((tileId) => gameState.tiles[tileId]),
+    [gameState.tilesByIds, gameState.tiles],
+  )
 
   const moveTiles = useCallback(
     throttle(
@@ -99,13 +102,13 @@ export default function GameProvider({ children }: PropsWithChildren) {
     [dispatch],
   )
 
-  const startGame = async () => {
+  const startGame = useCallback(async () => {
     dispatch({ type: "reset_game" })
-  }
+  }, [])
 
-  const newGame = async () => {
+  const newGame = useCallback(async () => {
     dispatch({ type: "new_game" })
-  }
+  }, [])
 
   const checkGameState = () => {
     const isWon =
@@ -182,7 +185,17 @@ export default function GameProvider({ children }: PropsWithChildren) {
       startGame,
       newGame,
     }),
-    [],
+    [
+      gameState.score,
+      gameState.bestScore,
+      gameState.status,
+      gameState.moves,
+      gameState.seed,
+      getTiles,
+      moveTiles,
+      startGame,
+      newGame,
+    ],
   )
 
   return (

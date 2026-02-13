@@ -50,7 +50,7 @@ function generateU64Seed(): bigint {
   return randomBigInt
 }
 
-type State = {
+export type State = {
   board: string[][]
   tiles: TileMap
   tilesByIds: string[]
@@ -140,11 +140,12 @@ export const getEmptyCells = (gameState: State) => {
 
 export const randomAvailableCell = (gameState: State) => {
   const rng = gameState.range
-  const randomNum = rng.random()
+  const cellRnd = rng.next()
   const cells = getEmptyCells(gameState)
 
   if (cells.length) {
-    return cells[Math.floor(randomNum * cells.length)]
+    const index = Number((cellRnd * BigInt(cells.length)) >> 64n)
+    return cells[index]
   }
 }
 
@@ -411,7 +412,9 @@ export default function gameReducer(state: State, action: Action): State {
         const tileId = uid()
         const emptyCells = getEmptyCells(newState)
         const rng = newState.range
-        const value = rng.random() < 0.9 ? 2 : 4
+        const THRESHOLD_90 = (BigInt("0xFFFFFFFFFFFFFFFF") * 9n) / 10n
+        const valueRnd = rng.next()
+        const value = valueRnd < THRESHOLD_90 ? 2 : 4
         const randomCell = randomAvailableCell(newState)
         if (emptyCells.length > 0 && randomCell) {
           const newTile = {

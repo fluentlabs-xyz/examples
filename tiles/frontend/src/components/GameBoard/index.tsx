@@ -9,7 +9,6 @@ import {
   Tiles,
 } from "@/components/GameBoard/styles/styles.ts"
 import { useCurrentNetworkStatus } from "@/shared/hooks/useCurrentNetworkStatus.ts"
-import { useSubmitSolution } from "@/shared/hooks/useSubmitSolution.ts"
 
 import { GameContext } from "./context/game-context"
 import { LOCAL_STORAGE_KEY } from "./context/reducers/game-reducer"
@@ -20,8 +19,7 @@ import Splash from "./splash"
 import Tile from "./tile"
 
 export default function GameBoard() {
-  const { mutateAsync: submitSolution } = useSubmitSolution()
-  const { getTiles, moveTiles, startGame, newGame, status, moves, seed } =
+  const { getTiles, moveTiles, startGame, newGame, status,  } =
     useContext(GameContext)
   const initialized = useRef(false)
   const { isConnected } = useAccount()
@@ -97,13 +95,7 @@ export default function GameBoard() {
       }
       initialized.current = true
     }
-  }, [startGame])
-
-  useEffect(() => {
-    if (status === "won" || status === "lost") {
-      submitSolution({ moves, seed })
-    }
-  }, [status])
+  }, [newGame, startGame])
 
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown)

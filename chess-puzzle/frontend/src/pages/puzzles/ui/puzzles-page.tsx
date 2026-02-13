@@ -108,7 +108,7 @@ export default function PuzzlesPage() {
           <MuiButton
             sx={{ flex: 1 }}
             onClick={() =>
-              window.open("https://faucet.dev.thefluent.xyz/", "_blank")
+              window.open("https://testnet.fluent.xyz/dev-portal", "_blank")
             }
             color="secondary"
             variant="contained"
