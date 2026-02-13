@@ -1,0 +1,5 @@
+{
+  "extends": [
+    "@fluent.xyz/eslint-config/eslintrc.app.json"
+  ]
+}
